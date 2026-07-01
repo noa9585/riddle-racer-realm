@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -29,19 +29,17 @@ function RoomPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Initial load + join
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const { data: r, error } = await supabase.from("game_rooms").select("*").eq("code", code).maybeSingle();
-      if (error || !r) { toast.error("Room not found"); navigate({ to: "/dashboard" }); return; }
+      if (error || !r) { toast.error("החדר לא נמצא"); navigate({ to: "/dashboard" }); return; }
       if (cancelled) return;
       setRoom(r as Room);
-      // Ensure joined (skip solo — host already inserted)
       const { data: existing } = await supabase.from("game_players").select("id").eq("room_id", r.id).eq("user_id", user.id).maybeSingle();
       if (!existing && r.status === "waiting") {
         const { count } = await supabase.from("game_players").select("*", { count: "exact", head: true }).eq("room_id", r.id);
-        if ((count ?? 0) >= r.max_players) { toast.error("Room is full"); navigate({ to: "/dashboard" }); return; }
+        if ((count ?? 0) >= r.max_players) { toast.error("החדר מלא"); navigate({ to: "/dashboard" }); return; }
         await supabase.from("game_players").insert({ room_id: r.id, user_id: user.id });
       }
       await refreshPlayers(r.id);
@@ -58,7 +56,6 @@ function RoomPage() {
     setPlayers((data ?? []).map((p: any) => ({ ...p, profile: p.profiles })));
   };
 
-  // Realtime subscriptions
   useEffect(() => {
     if (!room) return;
     const ch = supabase.channel(`room-${room.id}`)
@@ -86,11 +83,11 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
 
-  const copy = () => { navigator.clipboard.writeText(room.code); toast.success("Code copied!"); };
+  const copy = () => { navigator.clipboard.writeText(room.code); toast.success("הקוד הועתק!"); };
   const share = async () => {
     const url = `${window.location.origin}/room/${room.code}`;
-    if (navigator.share) { try { await navigator.share({ title: "Join my trivia room", text: `Room code: ${room.code}`, url }); } catch { /* ignored */ } }
-    else { await navigator.clipboard.writeText(url); toast.success("Link copied!"); }
+    if (navigator.share) { try { await navigator.share({ title: "הצטרפו לחדר הטריוויה שלי", text: `קוד החדר: ${room.code}`, url }); } catch { /* ignored */ } }
+    else { await navigator.clipboard.writeText(url); toast.success("הקישור הועתק!"); }
   };
 
   const leave = async () => {
@@ -106,7 +103,7 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
       if (room.difficulty) q = q.eq("difficulty", room.difficulty as any);
       const { data: qs, error } = await q.limit(200);
       if (error) throw error;
-      if (!qs || qs.length === 0) { toast.error("No questions match"); return; }
+      if (!qs || qs.length === 0) { toast.error("אין שאלות מתאימות"); return; }
       const picked = shuffle(qs).slice(0, room.question_count).map(x => x.id);
       const { error: uErr } = await supabase.from("game_rooms").update({
         status: "in_progress",
@@ -116,29 +113,29 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
       }).eq("id", room.id);
       if (uErr) throw uErr;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to start");
+      toast.error(e instanceof Error ? e.message : "ההפעלה נכשלה");
     } finally { setStarting(false); }
   };
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="card-pop p-8 animate-pop-in text-center">
-        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Room code</p>
+        <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">קוד החדר</p>
         <div className="mt-3 inline-flex items-center gap-3">
-          <div className="font-display text-6xl md:text-7xl font-bold tracking-[0.2em] bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
+          <div className="font-display text-6xl md:text-7xl font-bold tracking-[0.2em] bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent" dir="ltr">
             {room.code}
           </div>
           <Button size="icon" variant="ghost" onClick={copy} className="rounded-full"><Copy className="size-5" /></Button>
         </div>
-        <p className="mt-2 text-muted-foreground">Share this code with friends to join.</p>
+        <p className="mt-2 text-muted-foreground">שתפו את הקוד עם חברים כדי שיצטרפו.</p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <Button onClick={share} variant="outline" className="btn-pop rounded-full">Share link</Button>
-          <Button onClick={leave} variant="ghost" className="btn-pop rounded-full">Leave room</Button>
+          <Button onClick={share} variant="outline" className="btn-pop rounded-full">שיתוף קישור</Button>
+          <Button onClick={leave} variant="ghost" className="btn-pop rounded-full">יציאה מהחדר</Button>
         </div>
 
-        <div className="mt-8 text-left">
+        <div className="mt-8 text-right">
           <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-            <Users className="size-4" /> Players ({players.length}/{room.max_players})
+            <Users className="size-4" /> שחקנים ({players.length}/{room.max_players})
           </div>
           <div className="mt-3 grid sm:grid-cols-2 gap-2">
             {players.map(p => (
@@ -146,7 +143,7 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
                 <div className="size-9 rounded-full bg-gradient-to-br from-primary to-secondary text-white grid place-items-center font-bold">
                   {(p.profile?.username ?? "?").slice(0, 1).toUpperCase()}
                 </div>
-                <div className="flex-1 font-semibold">{p.profile?.username ?? "player"}</div>
+                <div className="flex-1 font-semibold">{p.profile?.username ?? "שחקן"}</div>
                 {p.user_id === room.host_id && <Crown className="size-4 text-warning-foreground" />}
               </div>
             ))}
@@ -156,11 +153,11 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
         {isHost && (
           <Button onClick={startGame} disabled={starting || players.length < 1}
             className="btn-pop mt-8 rounded-full h-12 px-8 bg-primary text-primary-foreground font-bold text-base">
-            {starting ? <Loader2 className="animate-spin size-5" /> : "Start game"}
+            {starting ? <Loader2 className="animate-spin size-5" /> : "התחילו את המשחק"}
           </Button>
         )}
         {!isHost && (
-          <p className="mt-8 text-sm text-muted-foreground">Waiting for host to start…</p>
+          <p className="mt-8 text-sm text-muted-foreground">ממתינים למארח שיתחיל…</p>
         )}
       </div>
     </main>
@@ -178,7 +175,6 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
   const startAtRef = useRef<number>(Date.now());
   const currentQid = room.question_ids[room.current_question];
 
-  // Fetch current question
   useEffect(() => {
     setSelected(null); setLocked(false);
     startAtRef.current = room.question_started_at ? new Date(room.question_started_at).getTime() : Date.now();
@@ -186,7 +182,6 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
       const { data, error } = await supabase.from("questions")
         .select("id, question, choices, correct_index, is_bonus, type").eq("id", currentQid).maybeSingle();
       if (error || !data) return;
-      // Randomize choice order but keep track of correct
       const choicesArr: string[] = Array.isArray(data.choices) ? (data.choices as string[]) : (data.choices as any);
       const indices = choicesArr.map((_, i) => i);
       const shuffled = shuffle(indices);
@@ -197,7 +192,6 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentQid, room.question_started_at]);
 
-  // Timer
   useEffect(() => {
     const iv = setInterval(() => {
       const elapsed = (Date.now() - startAtRef.current) / 1000;
@@ -209,7 +203,6 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room.time_per_question, room.question_started_at, locked, selected]);
 
-  // Auto-advance for host after time is up + small buffer
   useEffect(() => {
     if (!isHost) return;
     const timeoutMs = (room.time_per_question + 3) * 1000;
@@ -217,7 +210,6 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
       const isLast = room.current_question + 1 >= room.question_ids.length;
       if (isLast) {
         await supabase.from("game_rooms").update({ status: "finished" }).eq("id", room.id);
-        // Update host stats too
         await bumpProfileStatsFromRoom(room.id);
       } else {
         await supabase.from("game_rooms").update({
@@ -239,9 +231,8 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
       selected_index: choice < 0 ? null : choice, is_correct: isCorrect,
       points_earned: points, response_time_ms: Math.round(responseMs),
     });
-    if (error && !error.message.includes("duplicate")) { toast.error("Failed to record"); return; }
+    if (error && !error.message.includes("duplicate")) { toast.error("שגיאה בשמירה"); return; }
 
-    // Update player row (increment)
     const me = players.find(p => p.user_id === userId);
     await supabase.from("game_players").update({
       score: (me?.score ?? 0) + points,
@@ -262,8 +253,8 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
       <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground">
-        <div>Question {room.current_question + 1} / {room.question_ids.length}</div>
-        <div className="flex items-center gap-1"><Zap className="size-4 text-warning-foreground" /> {remaining}s</div>
+        <div>שאלה {room.current_question + 1} / {room.question_ids.length}</div>
+        <div className="flex items-center gap-1"><Zap className="size-4 text-warning-foreground" /> {remaining} שנ׳</div>
       </div>
       <div className="mt-2 h-2 rounded-full bg-muted overflow-hidden">
         <div className="h-full bg-gradient-to-r from-primary to-secondary transition-all" style={{ width: `${pct}%` }} />
@@ -275,7 +266,7 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
         <div className="card-pop mt-5 p-6 md:p-8 animate-pop-in">
           {question.is_bonus && (
             <div className="inline-flex items-center gap-1 rounded-full bg-warning/30 text-warning-foreground px-3 py-1 text-xs font-bold uppercase mb-3">
-              Bonus • 2x points
+              בונוס • כפול נקודות
             </div>
           )}
           <h2 className="font-display text-2xl md:text-3xl font-bold leading-tight">{question.question}</h2>
@@ -286,7 +277,7 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
               const isPicked = selected === i;
               return (
                 <button key={i} onClick={() => pick(i)} disabled={locked}
-                  className={`btn-pop text-left rounded-2xl p-4 border-2 font-semibold flex items-center gap-3 ${
+                  className={`btn-pop text-right rounded-2xl p-4 border-2 font-semibold flex items-center gap-3 ${
                     !revealed ? "border-border bg-card hover:border-primary" :
                     isRight ? "border-success bg-success/15" :
                     isPicked ? "border-destructive bg-destructive/15" : "border-border bg-card opacity-70"
@@ -301,14 +292,14 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
           </div>
           {locked && (
             <p className="mt-4 text-sm text-muted-foreground text-center">
-              {isHost ? "Next question in a moment…" : "Waiting for host…"}
+              {isHost ? "השאלה הבאה עוד רגע…" : "ממתינים למארח…"}
             </p>
           )}
         </div>
       )}
 
       <div className="card-pop mt-5 p-4">
-        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Live standings</div>
+        <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">דירוג חי</div>
         <div className="grid gap-1.5">
           {players.map((p, i) => (
             <div key={p.id} className={`flex items-center gap-3 rounded-xl p-2 ${p.user_id === userId ? "bg-accent" : ""}`}>
@@ -316,7 +307,7 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
               <div className="size-8 rounded-full bg-gradient-to-br from-primary to-secondary text-white grid place-items-center font-bold text-xs">
                 {(p.profile?.username ?? "?").slice(0, 1).toUpperCase()}
               </div>
-              <div className="flex-1 font-semibold text-sm">{p.profile?.username ?? "player"}</div>
+              <div className="flex-1 font-semibold text-sm">{p.profile?.username ?? "שחקן"}</div>
               <div className="font-display font-bold">{p.score}</div>
             </div>
           ))}
@@ -334,7 +325,6 @@ function ResultsScreen({ room, players, userId }: { room: Room; players: Player[
   const accuracy = me ? Math.round(((me.correct_count) / Math.max(1, me.correct_count + me.wrong_count)) * 100) : 0;
 
   useEffect(() => {
-    // Fire stat bump once for non-host (host bumped from advance). Idempotent enough for MVP.
     if (room.host_id !== userId) bumpProfileStatsFromRoom(room.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -343,22 +333,22 @@ function ResultsScreen({ room, players, userId }: { room: Room; players: Player[
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="card-pop p-8 md:p-10 text-center animate-pop-in">
         <Trophy className="size-14 mx-auto text-warning-foreground" />
-        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Winner</p>
+        <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">המנצח</p>
         <h1 className="mt-1 font-display text-4xl font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
           {winner?.profile?.username ?? "—"}
         </h1>
-        <div className="mt-1 font-display text-2xl">{winner?.score ?? 0} pts</div>
+        <div className="mt-1 font-display text-2xl">{winner?.score ?? 0} נק׳</div>
 
         {me && (
           <div className="mt-8 grid grid-cols-3 gap-3">
-            <MiniStat label="Your score" value={me.score} />
-            <MiniStat label="Accuracy" value={`${accuracy}%`} />
-            <MiniStat label="Correct" value={`${me.correct_count}/${me.correct_count + me.wrong_count}`} />
+            <MiniStat label="הניקוד שלך" value={me.score} />
+            <MiniStat label="דיוק" value={`${accuracy}%`} />
+            <MiniStat label="נכונות" value={`${me.correct_count}/${me.correct_count + me.wrong_count}`} />
           </div>
         )}
 
-        <div className="mt-8 text-left">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Final standings</div>
+        <div className="mt-8 text-right">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">דירוג סופי</div>
           <div className="grid gap-1.5">
             {players.map((p, i) => (
               <div key={p.id} className={`flex items-center gap-3 rounded-xl p-3 ${p.user_id === userId ? "bg-accent" : "bg-muted"}`}>
@@ -372,10 +362,10 @@ function ResultsScreen({ room, players, userId }: { room: Room; players: Player[
 
         <div className="mt-8 flex flex-wrap gap-2 justify-center">
           <Button onClick={() => navigate({ to: "/dashboard" })} className="btn-pop rounded-full bg-primary text-primary-foreground font-bold">
-            Back to home
+            חזרה לדף הבית
           </Button>
           <Button onClick={() => navigate({ to: "/leaderboard" })} variant="outline" className="btn-pop rounded-full">
-            View leaderboard
+            צפייה בלוח המובילים
           </Button>
         </div>
       </div>
@@ -392,7 +382,6 @@ function MiniStat({ label, value }: { label: string; value: string | number }) {
   );
 }
 
-/* Update the current user's profile with game outcome. Idempotent-ish for MVP. */
 async function bumpProfileStatsFromRoom(roomId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
