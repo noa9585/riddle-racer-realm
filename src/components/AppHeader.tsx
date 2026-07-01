@@ -22,15 +22,15 @@ export function AppHeader() {
           <span className="inline-flex items-center justify-center size-9 rounded-2xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg">
             <Sparkles className="size-5" />
           </span>
-          Trivia Pop
+          טריוויה פופ
         </Link>
         <nav className="hidden md:flex items-center gap-1">
-          <NavLink to="/dashboard" icon={<Home className="size-4" />} label="Play" />
-          <NavLink to="/leaderboard" icon={<Trophy className="size-4" />} label="Leaderboard" />
-          <NavLink to="/profile" icon={<UserIcon className="size-4" />} label="Profile" />
+          <NavLink to="/dashboard" icon={<Home className="size-4" />} label="שחקו" />
+          <NavLink to="/leaderboard" icon={<Trophy className="size-4" />} label="לוח מובילים" />
+          <NavLink to="/profile" icon={<UserIcon className="size-4" />} label="פרופיל" />
         </nav>
         <Button variant="ghost" size="sm" onClick={signOut} className="btn-pop rounded-full">
-          <LogOut className="size-4" /> <span className="hidden sm:inline">Sign out</span>
+          <LogOut className="size-4" /> <span className="hidden sm:inline">התנתקות</span>
         </Button>
       </div>
     </header>
