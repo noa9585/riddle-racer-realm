@@ -53,7 +53,7 @@ function CreateRoom() {
       await supabase.from("game_players").insert({ room_id: room.id, user_id: user.id });
       navigate({ to: "/room/$code", params: { code: room.code } });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create room");
+      toast.error(e instanceof Error ? e.message : "יצירת החדר נכשלה");
     } finally { setBusy(false); }
   };
 
@@ -63,42 +63,42 @@ function CreateRoom() {
         <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-secondary to-pink text-white shadow-lg">
           <Users className="size-6" />
         </div>
-        <h1 className="font-display text-3xl font-bold mt-4">Create a room</h1>
-        <p className="text-muted-foreground mt-1">You'll get a share code once it's ready.</p>
+        <h1 className="font-display text-3xl font-bold mt-4">יצירת חדר</h1>
+        <p className="text-muted-foreground mt-1">תקבלו קוד לשיתוף ברגע שהחדר יהיה מוכן.</p>
 
         <div className="mt-6 grid gap-5">
-          <Field label="Category">
+          <Field label="קטגוריה">
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger className="rounded-full h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any category</SelectItem>
+                <SelectItem value="any">כל קטגוריה</SelectItem>
                 {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Difficulty">
+          <Field label="רמת קושי">
             <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
               <SelectTrigger className="rounded-full h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="mixed">Mixed</SelectItem>
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
+                <SelectItem value="mixed">מעורב</SelectItem>
+                <SelectItem value="easy">קל</SelectItem>
+                <SelectItem value="medium">בינוני</SelectItem>
+                <SelectItem value="hard">קשה</SelectItem>
               </SelectContent>
             </Select>
           </Field>
-          <Field label={`Questions: ${count}`}>
+          <Field label={`שאלות: ${count}`}>
             <Slider value={[count]} min={5} max={20} step={1} onValueChange={([v]) => setCount(v)} />
           </Field>
-          <Field label={`Time per question: ${time}s`}>
+          <Field label={`זמן לשאלה: ${time} שנ׳`}>
             <Slider value={[time]} min={10} max={45} step={5} onValueChange={([v]) => setTime(v)} />
           </Field>
-          <Field label={`Max players: ${maxPlayers}`}>
+          <Field label={`מקסימום שחקנים: ${maxPlayers}`}>
             <Slider value={[maxPlayers]} min={2} max={12} step={1} onValueChange={([v]) => setMaxPlayers(v)} />
           </Field>
           <Button onClick={create} disabled={busy}
             className="btn-pop rounded-full h-12 bg-primary text-primary-foreground text-base font-bold">
-            {busy ? <Loader2 className="animate-spin size-5" /> : "Create room"}
+            {busy ? <Loader2 className="animate-spin size-5" /> : "צרו חדר"}
           </Button>
         </div>
       </div>

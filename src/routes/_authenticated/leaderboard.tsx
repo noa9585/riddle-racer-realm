@@ -29,8 +29,8 @@ function Leaderboard() {
           <Trophy className="size-6" />
         </div>
         <div>
-          <h1 className="font-display text-3xl font-bold">Global leaderboard</h1>
-          <p className="text-muted-foreground text-sm">Top 100 players by total points</p>
+          <h1 className="font-display text-3xl font-bold">לוח מובילים גלובלי</h1>
+          <p className="text-muted-foreground text-sm">100 השחקנים המובילים לפי סה״כ נקודות</p>
         </div>
       </div>
 
@@ -49,13 +49,13 @@ function Leaderboard() {
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold">{p.username}</div>
-                  <div className="text-xs text-muted-foreground">{p.games_won} wins · {p.games_played} games</div>
+                  <div className="text-xs text-muted-foreground">{p.games_won} ניצחונות · {p.games_played} משחקים</div>
                 </div>
                 <div className="font-display font-bold text-lg">{p.total_points}</div>
               </div>
             ))}
             {data?.length === 0 && (
-              <div className="p-10 text-center text-muted-foreground">Be the first to play and top the board!</div>
+              <div className="p-10 text-center text-muted-foreground">היו הראשונים לשחק ולהוביל את הטבלה!</div>
             )}
           </div>
         )}

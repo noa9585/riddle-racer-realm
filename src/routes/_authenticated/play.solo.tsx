@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ function SoloSetup() {
       if (difficulty !== "mixed") q = q.eq("difficulty", difficulty);
       const { data: qs, error } = await q.limit(200);
       if (error) throw error;
-      if (!qs || qs.length === 0) return toast.error("No questions match those filters");
+      if (!qs || qs.length === 0) return toast.error("אין שאלות שמתאימות לסינון");
       const picked = shuffle(qs).slice(0, count).map(x => x.id);
       const code = generateRoomCode();
       const { data: room, error: rErr } = await supabase.from("game_rooms").insert({
@@ -61,7 +61,7 @@ function SoloSetup() {
       await supabase.from("game_players").insert({ room_id: (await supabase.from("game_rooms").select("id").eq("code", room.code).single()).data!.id, user_id: user.id });
       navigate({ to: "/room/$code", params: { code: room.code } });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to start");
+      toast.error(e instanceof Error ? e.message : "הפעלה נכשלה");
     } finally { setBusy(false); }
   };
 
@@ -71,43 +71,43 @@ function SoloSetup() {
         <div className="inline-flex items-center justify-center size-14 rounded-2xl bg-gradient-to-br from-primary to-violet text-white shadow-lg">
           <Zap className="size-6" />
         </div>
-        <h1 className="font-display text-3xl font-bold mt-4">Solo practice</h1>
-        <p className="text-muted-foreground mt-1">Set the rules and jump straight in.</p>
+        <h1 className="font-display text-3xl font-bold mt-4">אימון סולו</h1>
+        <p className="text-muted-foreground mt-1">קבעו את הכללים וקפצו ישר פנימה.</p>
 
         <div className="mt-6 grid gap-5">
-          <Field label="Category">
+          <Field label="קטגוריה">
             <Select value={categoryId} onValueChange={setCategoryId}>
               <SelectTrigger className="rounded-full h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="any">Any category</SelectItem>
+                <SelectItem value="any">כל קטגוריה</SelectItem>
                 {categories?.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </Field>
 
-          <Field label="Difficulty">
+          <Field label="רמת קושי">
             <Select value={difficulty} onValueChange={(v) => setDifficulty(v as Difficulty)}>
               <SelectTrigger className="rounded-full h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="mixed">Mixed</SelectItem>
-                <SelectItem value="easy">Easy</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="hard">Hard</SelectItem>
+                <SelectItem value="mixed">מעורב</SelectItem>
+                <SelectItem value="easy">קל</SelectItem>
+                <SelectItem value="medium">בינוני</SelectItem>
+                <SelectItem value="hard">קשה</SelectItem>
               </SelectContent>
             </Select>
           </Field>
 
-          <Field label={`Questions: ${count}`}>
+          <Field label={`שאלות: ${count}`}>
             <Slider value={[count]} min={5} max={20} step={1} onValueChange={([v]) => setCount(v)} />
           </Field>
 
-          <Field label={`Time per question: ${time}s`}>
+          <Field label={`זמן לשאלה: ${time} שנ׳`}>
             <Slider value={[time]} min={10} max={45} step={5} onValueChange={([v]) => setTime(v)} />
           </Field>
 
           <Button onClick={start} disabled={busy}
             className="btn-pop rounded-full h-12 bg-primary text-primary-foreground text-base font-bold">
-            {busy ? <Loader2 className="animate-spin size-5" /> : "Start playing"}
+            {busy ? <Loader2 className="animate-spin size-5" /> : "התחילו לשחק"}
           </Button>
         </div>
       </div>

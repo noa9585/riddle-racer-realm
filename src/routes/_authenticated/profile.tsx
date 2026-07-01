@@ -43,12 +43,12 @@ function ProfilePage() {
   const save = useMutation({
     mutationFn: async () => {
       const clean = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
-      if (clean.length < 3) throw new Error("At least 3 chars, letters/digits/_");
+      if (clean.length < 3) throw new Error("לפחות 3 תווים באנגלית/ספרות/_");
       const { error } = await supabase.from("profiles").update({ username: clean }).eq("id", user.id);
       if (error) throw error;
     },
-    onSuccess: () => { toast.success("Saved"); qc.invalidateQueries({ queryKey: ["profile"] }); },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Failed to save"),
+    onSuccess: () => { toast.success("נשמר"); qc.invalidateQueries({ queryKey: ["profile"] }); },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "שמירה נכשלה"),
   });
 
   if (isLoading) return <main className="p-10 flex justify-center"><Loader2 className="animate-spin size-6 text-primary" /></main>;
@@ -62,34 +62,34 @@ function ProfilePage() {
           {(profile?.username ?? "?").slice(0, 1).toUpperCase()}
         </div>
         <div className="flex-1">
-          <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Profile</div>
+          <div className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">פרופיל</div>
           <h1 className="font-display text-3xl font-bold">{profile?.username}</h1>
-          <p className="text-muted-foreground text-sm mt-1">{user.email}</p>
+          <p className="text-muted-foreground text-sm mt-1" dir="ltr">{user.email}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat icon={<Trophy />} label="Total points" value={profile?.total_points ?? 0} />
-        <Stat icon={<Target />} label="Games won" value={profile?.games_won ?? 0} />
-        <Stat icon={<Zap />} label="Accuracy" value={`${accuracy}%`} />
-        <Stat icon={<Flame />} label="Games played" value={profile?.games_played ?? 0} />
+        <Stat icon={<Trophy />} label="סה״כ נקודות" value={profile?.total_points ?? 0} />
+        <Stat icon={<Target />} label="ניצחונות" value={profile?.games_won ?? 0} />
+        <Stat icon={<Zap />} label="דיוק" value={`${accuracy}%`} />
+        <Stat icon={<Flame />} label="משחקים" value={profile?.games_played ?? 0} />
       </div>
 
       <div className="card-pop p-6">
-        <h2 className="font-display text-xl font-bold flex items-center gap-2"><UserIcon className="size-5" /> Update username</h2>
+        <h2 className="font-display text-xl font-bold flex items-center gap-2"><UserIcon className="size-5" /> עדכון שם משתמש</h2>
         <div className="mt-4 flex gap-2">
           <div className="flex-1">
-            <Label className="sr-only">Username</Label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} className="rounded-full h-11" />
+            <Label className="sr-only">שם משתמש</Label>
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} className="rounded-full h-11" dir="ltr" />
           </div>
           <Button onClick={() => save.mutate()} disabled={save.isPending} className="btn-pop rounded-full h-11 px-6 bg-primary text-primary-foreground font-bold">
-            {save.isPending ? <Loader2 className="animate-spin size-4" /> : "Save"}
+            {save.isPending ? <Loader2 className="animate-spin size-4" /> : "שמירה"}
           </Button>
         </div>
       </div>
 
       <div className="card-pop p-6">
-        <h2 className="font-display text-xl font-bold">Achievements</h2>
+        <h2 className="font-display text-xl font-bold">הישגים</h2>
         <div className="mt-4 grid sm:grid-cols-2 gap-3">
           {achievements?.map(a => (
             <div key={a.id} className={`rounded-2xl p-4 border-2 ${a.unlocked ? "border-success bg-success/10" : "border-border bg-muted opacity-60"}`}>

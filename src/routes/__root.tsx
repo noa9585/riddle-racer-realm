@@ -21,15 +21,15 @@ function NotFoundComponent() {
         <div className="text-7xl font-display font-bold bg-gradient-to-br from-primary to-secondary bg-clip-text text-transparent">
           404
         </div>
-        <h2 className="mt-4 text-xl font-display font-semibold">Page not found</h2>
+        <h2 className="mt-4 text-xl font-display font-semibold">הדף לא נמצא</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Looks like this trivia question doesn't have an answer.
+          נראה שלשאלת הטריוויה הזאת אין תשובה.
         </p>
         <Link
           to="/"
           className="btn-pop mt-6 inline-flex rounded-full bg-primary text-primary-foreground px-6 py-2.5 font-semibold shadow-lg"
         >
-          Back to home
+          חזרה לדף הבית
         </Link>
       </div>
     </div>
@@ -46,19 +46,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="card-pop max-w-md text-center p-10">
-        <h1 className="text-xl font-display font-semibold">Something broke</h1>
+        <h1 className="text-xl font-display font-semibold">משהו השתבש</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Try again or head back home.
+          נסו שוב או חזרו לדף הבית.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => { router.invalidate(); reset(); }}
             className="btn-pop rounded-full bg-primary text-primary-foreground px-5 py-2 font-semibold"
           >
-            Try again
+            נסו שוב
           </button>
           <a href="/" className="btn-pop rounded-full border border-input bg-card px-5 py-2 font-semibold">
-            Go home
+            לדף הבית
           </a>
         </div>
       </div>
@@ -71,11 +71,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Trivia Pop — Multiplayer Trivia Battles" },
-      { name: "description", content: "Play trivia solo or challenge friends in real-time multiplayer rooms. Fast, colorful, and free." },
+      { title: "טריוויה פופ — קרבות טריוויה מרובי משתתפים" },
+      { name: "description", content: "שחקו טריוויה לבד או אתגרו חברים בחדרים בזמן אמת. מהיר, צבעוני ובחינם." },
       { name: "author", content: "Trivia Pop" },
-      { property: "og:title", content: "Trivia Pop — Multiplayer Trivia Battles" },
-      { property: "og:description", content: "Play trivia solo or challenge friends in real-time multiplayer rooms." },
+      { property: "og:title", content: "טריוויה פופ — קרבות טריוויה מרובי משתתפים" },
+      { property: "og:description", content: "שחקו טריוויה לבד או אתגרו חברים בחדרים בזמן אמת." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -84,7 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Rubik:wght@400;500;600;700;800&family=Heebo:wght@400;600;700;800&display=swap" },
     ],
   }),
   shellComponent: RootShell,
@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="he" dir="rtl">
       <head><HeadContent /></head>
       <body>{children}<Scripts /></body>
     </html>

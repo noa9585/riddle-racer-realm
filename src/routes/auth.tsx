@@ -14,8 +14,8 @@ export const Route = createFileRoute("/auth")({
 });
 
 const schema = z.object({
-  email: z.string().trim().email("Enter a valid email").max(255),
-  password: z.string().min(6, "At least 6 characters").max(72),
+  email: z.string().trim().email("הזינו כתובת אימייל תקינה").max(255),
+  password: z.string().min(6, "לפחות 6 תווים").max(72),
 });
 
 function AuthPage() {
@@ -44,25 +44,25 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin + "/dashboard" },
         });
         if (error) throw error;
-        toast.success("Welcome! You're in.");
+        toast.success("ברוכים הבאים! נכנסתם.");
         navigate({ to: "/dashboard", replace: true });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: parsed.data.email, password: parsed.data.password,
         });
         if (error) throw error;
-        toast.success("Signed in");
+        toast.success("התחברת בהצלחה");
         navigate({ to: "/dashboard", replace: true });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "משהו השתבש");
     } finally { setBusy(false); }
   };
 
   const google = async () => {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-    if (result.error) { toast.error("Google sign-in failed"); setBusy(false); return; }
+    if (result.error) { toast.error("התחברות עם Google נכשלה"); setBusy(false); return; }
     if (result.redirected) return;
     navigate({ to: "/dashboard", replace: true });
   };
@@ -74,48 +74,48 @@ function AuthPage() {
           <span className="inline-flex items-center justify-center size-9 rounded-2xl bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg">
             <Sparkles className="size-5" />
           </span>
-          Trivia Pop
+          טריוויה פופ
         </Link>
 
         <div className="card-pop p-8 animate-pop-in">
           <h1 className="font-display text-2xl font-bold text-center">
-            {mode === "signin" ? "Welcome back" : "Create your account"}
+            {mode === "signin" ? "ברוכים השבים" : "יצירת חשבון"}
           </h1>
           <p className="text-center text-sm text-muted-foreground mt-1">
-            {mode === "signin" ? "Sign in to keep playing" : "Start climbing the leaderboard"}
+            {mode === "signin" ? "התחברו כדי להמשיך לשחק" : "התחילו לטפס בלוח המובילים"}
           </p>
 
           <Button type="button" onClick={google} disabled={busy}
             className="btn-pop mt-6 w-full rounded-full h-11 bg-card border border-border text-foreground hover:bg-muted">
-            <GoogleIcon /> Continue with Google
+            <GoogleIcon /> המשיכו עם Google
           </Button>
 
           <div className="flex items-center gap-3 my-5 text-xs text-muted-foreground uppercase font-semibold">
-            <span className="h-px flex-1 bg-border" /> or email <span className="h-px flex-1 bg-border" />
+            <span className="h-px flex-1 bg-border" /> או אימייל <span className="h-px flex-1 bg-border" />
           </div>
 
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" autoComplete="email" required
+              <Label htmlFor="email">אימייל</Label>
+              <Input id="email" type="email" autoComplete="email" required dir="ltr"
                 value={email} onChange={(e) => setEmail(e.target.value)}
                 className="rounded-full h-11 mt-1" />
             </div>
             <div>
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required
+              <Label htmlFor="password">סיסמה</Label>
+              <Input id="password" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required dir="ltr"
                 value={password} onChange={(e) => setPassword(e.target.value)}
                 className="rounded-full h-11 mt-1" />
             </div>
             <Button type="submit" disabled={busy}
               className="btn-pop w-full rounded-full h-11 bg-primary text-primary-foreground font-bold text-base">
-              {busy ? <Loader2 className="animate-spin size-4" /> : (mode === "signin" ? "Sign in" : "Create account")}
+              {busy ? <Loader2 className="animate-spin size-4" /> : (mode === "signin" ? "התחברות" : "יצירת חשבון")}
             </Button>
           </form>
 
           <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             className="mt-4 w-full text-sm text-muted-foreground hover:text-foreground">
-            {mode === "signin" ? "No account? Sign up" : "Already have an account? Sign in"}
+            {mode === "signin" ? "אין חשבון? הירשמו" : "כבר יש חשבון? התחברו"}
           </button>
         </div>
       </div>
