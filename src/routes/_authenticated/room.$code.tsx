@@ -205,8 +205,10 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
 
   useEffect(() => {
     if (!isHost) return;
-    const timeoutMs = (room.time_per_question + 3) * 1000;
-    const t = setTimeout(async () => {
+    let done = false;
+    const advance = async () => {
+      if (done) return;
+      done = true;
       const isLast = room.current_question + 1 >= room.question_ids.length;
       if (isLast) {
         await supabase.from("game_rooms").update({ status: "finished" }).eq("id", room.id);
@@ -217,9 +219,23 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
           question_started_at: new Date().toISOString(),
         }).eq("id", room.id);
       }
-    }, timeoutMs);
-    return () => clearTimeout(t);
-  }, [isHost, room.current_question, room.id, room.question_ids.length, room.question_started_at, room.time_per_question]);
+    };
+    const checkAllAnswered = async () => {
+      const { count } = await supabase.from("answers")
+        .select("*", { count: "exact", head: true })
+        .eq("room_id", room.id).eq("question_id", currentQid);
+      if ((count ?? 0) >= players.length) advance();
+    };
+    const timeoutMs = (room.time_per_question + 1) * 1000;
+    const t = setTimeout(advance, timeoutMs);
+    const ch = supabase.channel(`answers-${room.id}-${room.current_question}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "answers", filter: `room_id=eq.${room.id}` },
+        (payload: any) => { if (payload.new?.question_id === currentQid) checkAllAnswered(); })
+      .subscribe();
+    checkAllAnswered();
+    return () => { clearTimeout(t); supabase.removeChannel(ch); };
+  }, [isHost, room.current_question, room.id, room.question_ids.length, room.question_started_at, room.time_per_question, currentQid, players.length]);
+
 
   const recordAnswer = async (choice: number) => {
     if (!question) return;
