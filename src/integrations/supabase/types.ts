@@ -373,6 +373,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_answer: {
+        Args: {
+          p_question_id: string
+          p_response_ms: number
+          p_room_id: string
+          p_selected_index: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"

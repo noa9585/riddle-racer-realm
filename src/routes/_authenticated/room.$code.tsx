@@ -240,23 +240,19 @@ function GameScreen({ room, players, userId, isHost, onRefreshPlayers }: {
   const recordAnswer = async (choice: number) => {
     if (!question) return;
     const responseMs = Math.min(room.time_per_question * 1000, Date.now() - startAtRef.current);
-    const isCorrect = choice === question.correct_index;
-    const points = calculateScore({ isCorrect, responseMs, timeLimitSec: room.time_per_question, isBonus: question.is_bonus });
-    const { error } = await supabase.from("answers").insert({
-      room_id: room.id, user_id: userId, question_id: question.id,
-      selected_index: choice < 0 ? null : choice, is_correct: isCorrect,
-      points_earned: points, response_time_ms: Math.round(responseMs),
+    const { error } = await supabase.rpc("submit_answer", {
+      p_room_id: room.id,
+      p_question_id: question.id,
+      p_selected_index: choice < 0 ? -1 : choice,
+      p_response_ms: Math.round(responseMs),
     });
-    if (error && !error.message.includes("duplicate")) { toast.error("שגיאה בשמירה"); return; }
-
-    const me = players.find(p => p.user_id === userId);
-    await supabase.from("game_players").update({
-      score: (me?.score ?? 0) + points,
-      correct_count: (me?.correct_count ?? 0) + (isCorrect ? 1 : 0),
-      wrong_count: (me?.wrong_count ?? 0) + (!isCorrect && choice >= 0 ? 1 : 0),
-    }).eq("room_id", room.id).eq("user_id", userId);
+    if (error && !error.message.toLowerCase().includes("already answered")) {
+      toast.error("שגיאה בשמירה");
+      return;
+    }
     onRefreshPlayers();
   };
+
 
   const pick = (i: number) => {
     if (locked || selected !== null) return;
