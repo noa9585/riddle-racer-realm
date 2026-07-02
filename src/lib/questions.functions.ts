@@ -137,7 +137,21 @@ ${diffText}.
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Route AI-generated questions to the "general knowledge" category by default.
+    const { data: cat } = await supabaseAdmin
+      .from("categories")
+      .select("id")
+      .eq("slug", "general")
+      .maybeSingle();
+    const categoryId =
+      cat?.id ??
+      (
+        await supabaseAdmin.from("categories").select("id").limit(1).maybeSingle()
+      ).data?.id;
+    if (!categoryId) throw new Error("לא נמצאה קטגוריה");
+
     const rows = clean.map((q) => ({
+      category_id: categoryId,
       question: q.question.trim(),
       choices: q.choices.map((c) => c.trim()),
       correct_index: q.correct_index,
@@ -159,3 +173,4 @@ ${diffText}.
 
     return { question_ids: (inserted ?? []).map((r) => r.id) };
   });
+
