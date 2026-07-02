@@ -98,13 +98,19 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
   const startGame = async () => {
     setStarting(true);
     try {
-      let q = supabase.from("questions").select("id").eq("approved", true);
-      if (room.category_id) q = q.eq("category_id", room.category_id);
-      if (room.difficulty) q = q.eq("difficulty", room.difficulty as any);
-      const { data: qs, error } = await q.limit(200);
-      if (error) throw error;
-      if (!qs || qs.length === 0) { toast.error("אין שאלות מתאימות"); return; }
-      const picked = shuffle(qs).slice(0, room.question_count).map(x => x.id);
+      let picked: string[];
+      if (room.question_ids && room.question_ids.length > 0) {
+        // Pre-seeded (e.g. AI-generated) questions — use as-is.
+        picked = shuffle(room.question_ids).slice(0, room.question_count);
+      } else {
+        let q = supabase.from("questions").select("id").eq("approved", true);
+        if (room.category_id) q = q.eq("category_id", room.category_id);
+        if (room.difficulty) q = q.eq("difficulty", room.difficulty as any);
+        const { data: qs, error } = await q.limit(200);
+        if (error) throw error;
+        if (!qs || qs.length === 0) { toast.error("אין שאלות מתאימות"); return; }
+        picked = shuffle(qs).slice(0, room.question_count).map(x => x.id);
+      }
       const { error: uErr } = await supabase.from("game_rooms").update({
         status: "in_progress",
         question_ids: picked,
@@ -112,6 +118,7 @@ function WaitingRoom({ room, players, isHost, userId }: { room: Room; players: P
         question_started_at: new Date().toISOString(),
       }).eq("id", room.id);
       if (uErr) throw uErr;
+
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "ההפעלה נכשלה");
     } finally { setStarting(false); }
